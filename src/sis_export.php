@@ -368,90 +368,96 @@ foreach ($content as $line) {
         }
         $crntermarray = explode(".",$crnterm);
 
-        ## Replace earned grades with Administrative Grades
-        if (array_key_exists($gnumber, $admin_grade_by_gnumber)) {
-            $grade = $admin_grade_by_gnumber[$gnumber];
-        } else {
-            // this should never happen, it should always be caught earlier in the grade validation process
-            $logger->logmsg("Recording of grade $grade from $publisher_fullerid for $gnumber in section $crnterm failed because no administrative grade was present. This should never happen at this point\n");
-            exit(1);
-        }
-
-        ## Handle everthing but incompletes
-        if ($grade != "I") {
-            $logger->logmsg("$publisher_fullerid published grade $grade for $gnumber in section $crnterm\n", False);
-
-            ## If the grade is AIC or ASA then the actual grade we insert is RD and we put ASA/AIC
-            ## in the comment field. So select the query that performs that function. 
-            if ($grade == 'AIC' || $grade == 'ASA') {
-                $q = $aicasa_query;
+        // It is possible that we have a Canvas account that has a non-FullerID login, which would 
+        // show up as a line in the export that does not have a gnumber. The call to validate_export
+        // makes sure that there is a line for that student in the export which does have a gnumber,
+        // so it is safe to ignore the non-gnumber lines when processing the grades.
+        if ($gnumber != "") {
+            ## Replace earned grades with Administrative Grades
+            if (array_key_exists($gnumber, $admin_grade_by_gnumber)) {
+                $grade = $admin_grade_by_gnumber[$gnumber];
             } else {
-                $q = $query;
-            } 
-            if ($c['skip_insert_into_banner'] != "false") {
-                error_log("skip_insert_into_banner is set in the config.ini");
-                error_log("Would have executed query: $q");
-            } else {
-                $insertstmt = oci_parse($connection,$q);
-                if (!$insertstmt) {
-                    $e = oci_error($connection);
-                    $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
-                    error_log($msg);
-                    $logger->logmsg($msg);
-                    exit(1);
-                }
-                oci_bind_by_name($insertstmt, ':grade', $grade);
-                oci_bind_by_name($insertstmt, ':gnumber', $gnumber);
-                oci_bind_by_name($insertstmt, ':crn', $crntermarray[0]);
-                oci_bind_by_name($insertstmt, ':termcode', $crntermarray[1]);
-            /* */
-                $r = oci_execute($insertstmt);
-                if (!$r) {
-                    $e = oci_error($insertstmt);
-                    $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
-                    $logger->logmsg($msg);
-                    $mailobj->send_error_to_admin("Attempt to submit grades failed with insert error", $msg);
-                    $mailobj->send_system_error_message($publisher_emails);
-                    exit(1);
-                } else {
-                    $msg = "Write Succeded\n";
-                    $logger->logmsg($msg, False);
-                    $logger->logmsg("Rows inserted ".oci_num_rows($insertstmt)."\n", False);
-                }
+                // this should never happen, it should always be caught earlier in the grade validation process
+                $logger->logmsg("Recording of grade $grade from $publisher_fullerid for $gnumber in section $crnterm failed because no administrative grade was present. This should never happen at this point\n");
+                exit(1);
             }
-        ## Handle incomplete grades
-        } else {
-            $q = $incomplete_query;
-            $logger->logmsg("$publisher_fullerid published grade $grade for $gnumber in section $crnterm. It was recorded in Banner as comment INP\n", False);
-            if ($c['skip_insert_into_banner'] != "false") {
-                error_log("skip_insert_into_banner is set in the config.ini");
-                error_log("Would have executed query: $q");
-            } else {
-                $insertstmt = oci_parse($connection,$q);
-                if (!$insertstmt) {
-                    $e = oci_error($connection);
-                    $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
-                    error_log($msg);
-                    $logger->logmsg($msg);
-                    exit(1);
-                }
 
-                oci_bind_by_name($insertstmt, ':gnumber', $gnumber);
-                oci_bind_by_name($insertstmt, ':crn', $crntermarray[0]);
-                oci_bind_by_name($insertstmt, ':termcode', $crntermarray[1]);
-                $r = oci_execute($insertstmt);
+            ## Handle everthing but incompletes
+            if ($grade != "I") {
+                $logger->logmsg("$publisher_fullerid published grade $grade for $gnumber in section $crnterm\n", False);
 
-                if (!$r) {
-                    $e = oci_error($insertstmt);
-                    $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
-                    $logger->logmsg($msg);
-                    $mailobj->send_error_to_admin("Attempt to submit grades failed with insert error", $msg);
-                    $mailobj->send_system_error_message($publisher_emails);
-                    exit(1);
+                ## If the grade is AIC or ASA then the actual grade we insert is RD and we put ASA/AIC
+                ## in the comment field. So select the query that performs that function. 
+                if ($grade == 'AIC' || $grade == 'ASA') {
+                    $q = $aicasa_query;
                 } else {
-                    $msg = "Write Succeded\n";
-                    $logger->logmsg($msg, False);
-                    $logger->logmsg("Rows inserted ".oci_num_rows($insertstmt)."\n", False);
+                    $q = $query;
+                } 
+                if ($c['skip_insert_into_banner'] != "false") {
+                    error_log("skip_insert_into_banner is set in the config.ini");
+                    error_log("Would have executed query: $q");
+                } else {
+                    $insertstmt = oci_parse($connection,$q);
+                    if (!$insertstmt) {
+                        $e = oci_error($connection);
+                        $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
+                        error_log($msg);
+                        $logger->logmsg($msg);
+                        exit(1);
+                    }
+                    oci_bind_by_name($insertstmt, ':grade', $grade);
+                    oci_bind_by_name($insertstmt, ':gnumber', $gnumber);
+                    oci_bind_by_name($insertstmt, ':crn', $crntermarray[0]);
+                    oci_bind_by_name($insertstmt, ':termcode', $crntermarray[1]);
+                /* */
+                    $r = oci_execute($insertstmt);
+                    if (!$r) {
+                        $e = oci_error($insertstmt);
+                        $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
+                        $logger->logmsg($msg);
+                        $mailobj->send_error_to_admin("Attempt to submit grades failed with insert error", $msg);
+                        $mailobj->send_system_error_message($publisher_emails);
+                        exit(1);
+                    } else {
+                        $msg = "Write Succeded\n";
+                        $logger->logmsg($msg, False);
+                        $logger->logmsg("Rows inserted ".oci_num_rows($insertstmt)."\n", False);
+                    }
+                }
+            ## Handle incomplete grades
+            } else {
+                $q = $incomplete_query;
+                $logger->logmsg("$publisher_fullerid published grade $grade for $gnumber in section $crnterm. It was recorded in Banner as comment INP\n", False);
+                if ($c['skip_insert_into_banner'] != "false") {
+                    error_log("skip_insert_into_banner is set in the config.ini");
+                    error_log("Would have executed query: $q");
+                } else {
+                    $insertstmt = oci_parse($connection,$q);
+                    if (!$insertstmt) {
+                        $e = oci_error($connection);
+                        $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
+                        error_log($msg);
+                        $logger->logmsg($msg);
+                        exit(1);
+                    }
+
+                    oci_bind_by_name($insertstmt, ':gnumber', $gnumber);
+                    oci_bind_by_name($insertstmt, ':crn', $crntermarray[0]);
+                    oci_bind_by_name($insertstmt, ':termcode', $crntermarray[1]);
+                    $r = oci_execute($insertstmt);
+
+                    if (!$r) {
+                        $e = oci_error($insertstmt);
+                        $msg = "Fatal Error: Could not insert grades for $gnumber in $crnterm: ".$e['message']."\n";
+                        $logger->logmsg($msg);
+                        $mailobj->send_error_to_admin("Attempt to submit grades failed with insert error", $msg);
+                        $mailobj->send_system_error_message($publisher_emails);
+                        exit(1);
+                    } else {
+                        $msg = "Write Succeded\n";
+                        $logger->logmsg($msg, False);
+                        $logger->logmsg("Rows inserted ".oci_num_rows($insertstmt)."\n", False);
+                    }
                 }
             }
         }
