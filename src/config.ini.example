@@ -1,0 +1,44 @@
+[banner]
+## Prod Banner Connection
+prod_user = 'XXXXXXXXXXX'
+prod_password = 'XXXXXXXXXXXXXXXX'
+prod_sid = 'XXX'
+prod_server = 'XXXXXXXXXXXXXXXXXXX'
+## Test Banner Connection
+test_user = 'XXXXXXXXXXX'
+test_password = 'XXXXXXXXXXXXX'
+test_sid = 'XXXXXXXX'
+test_server = 'XXXXXXXXXXXXXXXXXX'
+[application]
+prod_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXX'
+test_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXX'
+prod_canvas_host = 'XXXXXX.instructure.com'
+test_canvas_host = 'XXXXXX.test.instructure.com'
+[constants]
+logfile = "/tmp/sys_export_err.log";
+roster_directory = "/tmp";
+## from address and reply to address
+from_address = "registrar@your_institution"
+## testing e-mail address
+test_address[] = "testing@your_institution"
+## success e-mail is cc'd to
+success_address[] = "one_address@your_institution"
+success_address[] = "anotheer_address@your_institution"
+## all other e-mail is cc'd to
+other_address[] = "one_address@your_institution"
+other_address[] = "another_address@your_institution"
+## administrator addresses
+admin_address[] = "one_address@your_institution"
+admin_address[] = "another_address@your_institution"
+
+## the string false disables testing, everything else leaves testing mode on
+is_testing = "true"
+use_test_data = "true"
+use_mock = "true"
+email_testing = "true"
+skip_insert_into_banner = "true"
+
+## Banner ID number of super users (other users who are authorized to submit grades)
+superuser[] = "XXXXXXXXX"
+superuser[] = "XXXXXXXXX"
+

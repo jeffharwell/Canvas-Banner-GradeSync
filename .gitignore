@@ -1,0 +1,7 @@
+/src/config.ini
+config.ini
+test.php
+vendor
+phpunit
+.phpunit*
+composer.lock
