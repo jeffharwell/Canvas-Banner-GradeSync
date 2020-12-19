@@ -171,7 +171,14 @@ function validate_grades($grade, $crnterm, $valid_grades, $gnumber, $admin_grade
     // if there was an earned grade. Now we are completely ignoring the earned grade and just using the admin
     // grade column. Write a test harness for this function and then refactor it. (It should probably return
     // true or false rather than end the execution of the program as well ...)
+
+    // This is a temporary hard code, we accept blank grades from these crosslisted DMIN courses
+    $accept_blank_grades = array("48391.202004","48394.202004","48322.202004");
     if (!($admin_grade_by_gnumber && array_key_exists($gnumber, $admin_grade_by_gnumber) && in_array($admin_grade_by_gnumber[$gnumber], $valid_grades))) {
+        if ($admin_grade_by_gnumber && !array_key_exists($gnumber, $admin_grade_by_gnumber) && in_array($accept_blank_grades, $crnterm)) {
+            // This is one of the crosslisted dmin sections, we can just return true and ignore that there is no admin grade for this user
+            return(true);
+        }
         $valid_grade_string = implode(", ", $valid_grades);
         $subject = "[Grade Syncing - Canvas/Banner] Please try it again";
         $msg = "Thank you for submitting your final grades for $crnterm. There is some important information missing or invalid grades. Only the following grades can be assigned to students in your section $crnterm: $valid_grade_string. Please remember that only the primary faculty can submit grades. Please try submitting your grades again. If the problem continues or if you have any questions, contact teach@fuller.edu. Thank you.";
