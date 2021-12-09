@@ -88,7 +88,7 @@ if (!$data && ($testing or $c['use_test_data'] != 'false')) {
 $logger->logmsg($data, False);
 
 // 
-$accept_blank_grades = array("48391","48394","48322");
+$accept_blank_grades = array("27633","27635");
 
 // Now parse the data we received into an array of lines, one line per student grade
 $lines = explode("\n", $data);
@@ -196,8 +196,16 @@ $logger->add_publisher($publisher_name_string);
 
 ## We are shut down after the grading due date
 $now = new DateTime("now", new DateTimeZone('America/Los_Angeles') );
-$duedate = new DateTime("2020-12-18 14:00:00", new DateTimeZone('America/Los_Angeles'));
+$duedate = new DateTime("2021-12-17 13:01:00", new DateTimeZone('America/Los_Angeles'));
+$opendate = new DateTime("2021-12-11 00:00:00", new DateTimeZone('America/Los_Angeles'));
+#$duedate = new DateTime("2021-06-19 12:00:00", new DateTimeZone('America/Los_Angeles'));
+#$duedate = new DateTime("2021-03-27 12:00:00", new DateTimeZone('America/Los_Angeles'));
 #$duedate = new DateTime("2019-06-12 14:00:00", new DateTimeZone('America/Los_Angeles'));
+if ($now < $opendate) {
+    $logger->logmsg("Instructor ".implode(", ", $publisher_emails)." submitted grades before the grade window opened and they were rejected.\n");
+	$mailobj->send_window_not_open_message($publisher_emails, $opendate);
+	exit(0);
+}
 if ($now > $duedate) {
     $logger->logmsg("Instructor ".implode(", ", $publisher_emails)." submitted grades past the deadline and they were rejected.\n");
 	$mailobj->send_deadline_missed_message($publisher_emails);
@@ -259,7 +267,7 @@ if (($testing or $c['use_test_data']) && $use_mock) {
         $logger->logmsg($msg);
         $subject = "[Grade Syncing - Canvas/Banner] Please try it again";
         $all = implode(", ", $crn_terms);
-        $msg = "Thank you for submitting your final grades for $all. There is some important information missing or invalid grades. Please try submitting your grades again and ensure that you are entering the final grade in the administrative grade column. If the problem continues or if you have any questions, contact teach@fuller.edu. Thank you.";
+        $msg = "Thank you for submitting your final grades for $all. There is some important information missing or invalid grades. Please try submitting your grades again and ensure that you are entering the final grade in the administrative grade column. If the problem continues or if you have any questions, contact grades@fuller.edu. Thank you.";
         $mailobj->send_failure_message($publisher_emails, $subject, $msg);
         exit(1);
     }
@@ -278,6 +286,7 @@ try {
 
 // Now validate each grade and and make sure that there is an administrative grade
 foreach ($content as $line) {
+    echo("Working"); // so connection doesn't time out
     if ($line != "") {
         $fields = explode(",",$line);
         $publisher_fullerid = $fields[1];
@@ -308,7 +317,7 @@ foreach ($content as $line) {
                 $msg = "Instructor $publisher_fullerid is not the primary instructor for $crnterm, rejecting grades";
                 $logger->logmsg($msg."\n");
                 $subject = "[Grade Syncing - Canvas/Banner] Please try it again";
-                $msg = "Thank you for submitting your final grades for $crnterm; however, your submission could not be accepted. Please note that only the primary instructor for the course can submit grades. If you are the primary instructor please try submitting your grades again. If the problem continues or if you have any questions, contact teach@fuller.edu. Thank you.";
+                $msg = "Thank you for submitting your final grades for $crnterm; however, your submission could not be accepted. Please note that only the primary instructor for the course can submit grades. If you are the primary instructor please try submitting your grades again. If the problem continues or if you have any questions, contact grades@fuller.edu. Thank you.";
                 $mailobj->send_failure_message($publisher_emails, $subject, $msg);
                 exit(1);
             }
@@ -378,7 +387,7 @@ foreach ($content as $line) {
 
         // This is a temporary hardcode for Fall 2020 not die on blank grades from these specific
         // crosslisted DMin courses
-        $accept_blank_grades = array("48391.202004","48394.202004","48322.202004");
+        $accept_blank_grades = array("34124.202103","34129.202103");
         if ($gnumber != "") {
             if (!array_key_exists($gnumber, $admin_grade_by_gnumber) && in_array($accept_blank_grades, $crnterm)) {
                 $logger->logmsg("No administrative grade found for $gnumber but $crnterm is a crosslisted DMin courses so proceeding by skipping this student.");

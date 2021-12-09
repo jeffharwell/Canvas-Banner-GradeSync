@@ -137,6 +137,23 @@ class GradeSyncEmail {
         $this->send_email($addresses, $cc_addresses, $subject, $message);
     }
 
+    function send_window_not_open_message($addresses, $window_open_date) {
+        if (c['is_testing'] != "false") {
+            ## we are testing, send to the configured test_address instead of the 
+            ## specified address and do not 'cc'
+            $addresses = $this->config['test_address'];
+            $cc_addresses = [];
+        } else {
+            ## We are not testing, add the cc addreses
+            $cc_addresses = $this->config['other_address'];
+        }
+	$ds = date_format($window_open_date, 'm-d-Y');
+        $subject = "[Grade Syncing - Canvas/Banner] Grade Submission Window Does Not Open Until $ds";
+        $msg = "The grade submission window is currently not open so the system cannot accept your grade submission . Please wait until $ds and try again. Please contact the Registrar's office at grades@fuller.edu or 626.384.5413 if you have any questions. Thank you.";
+        $this->send_email($addresses, $cc_addresses, $subject, $msg);
+    }
+
+
     function send_deadline_missed_message($addresses) {
         if (c['is_testing'] != "false") {
             ## we are testing, send to the configured test_address instead of the 
@@ -181,7 +198,7 @@ class GradeSyncEmail {
         }
 
         $subject = "[Grade Syncing - Canvas/Banner] We have received your final grades for $class";
-        $msg = "Your final grades have successfully been submitted for $class. If you have any questions, please contact teach@fuller.edu. Thank you.";
+        $msg = "Your final grades have successfully been submitted for $class. If you have any questions, please contact grades@fuller.edu. Thank you.";
         $this->send_email($addresses, $cc_addresses, $subject, $msg);
     }
 }

@@ -13,7 +13,7 @@ class CanvasLibrary {
         $this->debug = $debug;
     }
 
-    function get_courses() {
+    function get_courses($canvas_term_id) {
         /* Now do the prep and send up the curl request */
         if ($this->config['is_testing'] === 'false') {
             $INSTANCE = $this->config['prod_canvas_host'];
@@ -23,9 +23,9 @@ class CanvasLibrary {
             $TOKEN = $this->config['test_token'];
         }
 
-        $graphql_query = <<<'EOD'
+        $graphql_query = <<<EOT
 query ListSectionsForTerm {
-  term(id: "112") {
+  term(id: "$canvas_term_id") {
     name
     coursesConnection {
       nodes {
@@ -37,7 +37,7 @@ query ListSectionsForTerm {
     }
   }
 }
-EOD;
+EOT;
 
         $url = "https://$INSTANCE/api/graphql";
         $ch = curl_init($url);
@@ -82,7 +82,7 @@ EOD;
         return($all_courses);
     }
 
-    function get_sections() {
+    function get_sections($canvas_term_id) {
         /* Now do the prep and send up the curl request */
         if ($this->config['is_testing'] === 'false') {
             $INSTANCE = $this->config['canvas_host'];
@@ -92,9 +92,9 @@ EOD;
             $TOKEN = $this->config['token_test'];
         }
 
-        $graphql_query = <<<'EOD'
+        $graphql_query = <<<EOT
 query ListSectionsForTerm {
-  term(id: "112") {
+  term(id: "$canvas_term_id") {
     name
     coursesConnection {
       nodes {
@@ -113,7 +113,7 @@ query ListSectionsForTerm {
     }
   }
 }
-EOD;
+EOT;
 
         $url = "https://$INSTANCE/api/graphql";
         $ch = curl_init($url);
@@ -186,10 +186,10 @@ $logger = function($mesg) use ($c, $process_name) {
     file_put_contents($c['applicationlog'], $d.": ".$process_name.": ".$mesg."\n", FILE_APPEND);
 };
 
-
+$canvas_term_id = 222
 $cl = new CanvasLibrary($c, $logger, true);
 //$sections = $cl->get_sections();
-$courses = $cl->get_courses();
+$courses = $cl->get_courses($canvas_term_id);
 //var_dump($sections);
 var_dump($courses);
  */

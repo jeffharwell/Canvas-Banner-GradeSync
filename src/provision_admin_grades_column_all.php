@@ -113,8 +113,20 @@ if (file_exists("/var/www/config.ini")) {
 }
 
 ## Set up the canvas connection info
-$canvas_token = $c['token'];
-$canvas_host = $c['canvas_host'];
+$testing = TRUE;
+if ($c['is_testing'] == "false") {
+    $testing = FALSE;
+} else {
+    error_log("We are in testing mode");
+}
+
+if ($testing) {
+    $canvas_token = $c['test_token'];
+    $canvas_host = $c['test_canvas_host'];
+} else {
+    $canvas_token = $c['prod_token'];
+    $canvas_host = $c['prod_canvas_host'];
+}
 
 // Create a logger function (this looks like Javascript .. cool)
 $process_name = 'Provison Admin Column for All Sections In Term';
@@ -124,8 +136,9 @@ $logger = function($mesg) use ($c, $process_name) {
     file_put_contents($c['applicationlog'], $d.": ".$process_name.": ".$mesg."\n", FILE_APPEND);
 };
 
+$canvas_term_id = 222;
 $cl = new CanvasLibrary($c, $logger, false);
-$courses = $cl->get_courses();
+$courses = $cl->get_courses($canvas_term_id);
 //var_dump($sections);
 
 ## Loop through our pilot courses
