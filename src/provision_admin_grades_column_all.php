@@ -136,7 +136,7 @@ $logger = function($mesg) use ($c, $process_name) {
     file_put_contents($c['applicationlog'], $d.": ".$process_name.": ".$mesg."\n", FILE_APPEND);
 };
 
-$canvas_term_id = 222;
+$canvas_term_id = 225;
 $cl = new CanvasLibrary($c, $logger, false);
 $courses = $cl->get_courses($canvas_term_id);
 //var_dump($sections);

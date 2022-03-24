@@ -216,8 +216,7 @@ SELECT DISTINCT sfrstcr_crn, sfrstcr_term_code, ssbsect_subj_code, ssbsect_crse_
     AND sfrstcr_rsts_code = 'RE'
     AND ssbsect_term_code = sfrstcr_term_code
     AND ssbsect_crn = sfrstcr_crn
-    AND ssbsect_ptrm_code not in ('3','ESL')
-    and ssbsect_camp_code not in ('U','V','W','X','Y','8D')
+    AND ssbsect_ptrm_code not in ('ESL')
     and ssbsect_schd_code <> 'XX'
     AND scbcrse_subj_code = ssbsect_subj_code 
     and scbcrse_crse_numb = ssbsect_crse_numb
